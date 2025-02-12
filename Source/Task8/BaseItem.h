@@ -31,6 +31,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	UStaticMeshComponent* StaticMesh;
 
+	// ✅ 아이템 타입 추가 (코인, 힐링, 무기 등)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	FName ItemType;
+
 	// 인터페이스 함수 구현
 	virtual void OnItemOverlap(
 		UPrimitiveComponent* OverlappedComp,
