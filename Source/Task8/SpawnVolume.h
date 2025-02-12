@@ -4,6 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "SpawnVolume.generated.h"
 
+class ABaseItem;
+class AMyGameMode;
+
 UCLASS()
 class TASK8_API ASpawnVolume : public AActor
 {
@@ -11,6 +14,8 @@ class TASK8_API ASpawnVolume : public AActor
 	
 public:	
 	ASpawnVolume();
+
+	void StartWave();
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,7 +46,6 @@ private:
 	FTimerHandle SpawnTimerHandle;
 	float CurrentWaveTime;
 	
-	void StartWave();
 	void EndWave();
 	void SpawnItem();
 	FVector GetRandomPointInVolume();

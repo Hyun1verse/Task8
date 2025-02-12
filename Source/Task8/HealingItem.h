@@ -14,7 +14,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Healing")
-	int32 HealAmount;
+	float HealAmount;
 	
 	virtual void ActivateItem_Implementation(AActor* Activator);
 };

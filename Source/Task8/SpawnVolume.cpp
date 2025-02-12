@@ -3,8 +3,8 @@
 #include "BaseItem.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
+#include "MyGameMode.h"
 
-// Sets default values
 ASpawnVolume::ASpawnVolume()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -68,11 +68,21 @@ void ASpawnVolume::EndWave()
 {
     if (CurrentWave < ItemsPerWave.Num())
     {
-        // 다음 웨이브 시작 타이머 설정
-        FTimerHandle NextWaveTimer;
-        GetWorldTimerManager().SetTimer(NextWaveTimer, this, &ASpawnVolume::StartWave, TimeBetweenWaves, false);
+        // GameMode에 웨이브 종료 알림
+        if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+        {
+            GameMode->EndWave();
+            
+            // 다음 웨이브 시작
+            FTimerHandle NextWaveTimer;
+            GetWorldTimerManager().SetTimer(NextWaveTimer, [GameMode]()
+            {
+                GameMode->StartNewWave();
+            }, TimeBetweenWaves, false);
+        }
         
-        FString Message = FString::Printf(TEXT("Wave %d 종료! %d초 후 다음 웨이브 시작"), CurrentWave, FMath::RoundToInt(TimeBetweenWaves));
+        FString Message = FString::Printf(TEXT("Wave %d 종료! %d초 후 다음 웨이브 시작"), 
+            CurrentWave, FMath::RoundToInt(TimeBetweenWaves));
         GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Orange, Message);
         UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
     }

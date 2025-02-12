@@ -4,7 +4,7 @@
 
 AHealingItem::AHealingItem()
 {
-	HealAmount = 10;
+	HealAmount = 10.0f;
 	ItemType = "Healing";
 }
 

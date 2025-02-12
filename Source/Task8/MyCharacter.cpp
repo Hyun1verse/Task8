@@ -4,6 +4,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "MyGameMode.h"
 
 AMyCharacter::AMyCharacter()
 {
@@ -49,6 +50,12 @@ void AMyCharacter::BeginPlay()
         {
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
+    }
+
+    // 초기 체력 UI 업데이트 추가
+    if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GameMode->UpdateHealthBar(GetHealthPercentage());
     }
 }
 
@@ -114,19 +121,34 @@ float AMyCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
         // 게임 오버 처리는 나중에 구현
     }
 
+    if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GameMode->UpdateHealthBar(GetHealthPercentage());
+    }
+
     return DamageToApply;
 }
 
 void AMyCharacter::AddScore(int32 Points)
 {
     Score += Points;
-    UE_LOG(LogTemp, Warning, TEXT("점수 증가! 현재 점수: %d"), Score);
+    
+    if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GameMode->UpdateScore(Score);
+    }
 }
 
 void AMyCharacter::AddHealth(float HealAmount)
 {
     CurrentHealth = FMath::Min(CurrentHealth + HealAmount, MaxHealth);
     UE_LOG(LogTemp, Warning, TEXT("체력 회복! 현재 체력: %f"), CurrentHealth);
+    
+    // UI 업데이트 추가
+    if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GameMode->UpdateHealthBar(GetHealthPercentage());
+    }
 }
 
 float AMyCharacter::GetHealthPercentage() const
