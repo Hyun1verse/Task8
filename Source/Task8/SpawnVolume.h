@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -12,15 +10,39 @@ class TASK8_API ASpawnVolume : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ASpawnVolume();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TArray<TSubclassOf<class ABaseItem>> ItemsToSpawn;
+
+	UPROPERTY(EditAnywhere, Category = "Wave")
+	int32 CurrentWave;
+
+	UPROPERTY(EditAnywhere, Category = "Wave")
+	float WaveDuration;
+
+	UPROPERTY(EditAnywhere, Category = "Wave")
+	float TimeBetweenWaves;
+
+	UPROPERTY(EditAnywhere, Category = "Wave")
+	TArray<int32> ItemsPerWave;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UBoxComponent* SpawnArea;
+
+private:
+	FTimerHandle WaveTimerHandle;
+	FTimerHandle SpawnTimerHandle;
+	float CurrentWaveTime;
+	
+	void StartWave();
+	void EndWave();
+	void SpawnItem();
+	FVector GetRandomPointInVolume();
 };
