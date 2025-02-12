@@ -1,65 +1,98 @@
 #include "BaseItem.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Engine/Engine.h"
 
 ABaseItem::ABaseItem()
 {
-	PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
-	// 루트 컴포넌트 설정
-	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-	SetRootComponent(Scene);
+    Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
+    SetRootComponent(Scene);
 
-	// 충돌 컴포넌트 설정
-	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
-	Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	Collision->SetupAttachment(Scene);
+    Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+    Collision->SetupAttachment(Scene);
+    Collision->InitSphereRadius(100.0f);
 
-	// 메시 컴포넌트 설정
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(Collision);
+    StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+    StaticMesh->SetupAttachment(Collision);
 
-	// Overlap 이벤트 바인딩
-	Collision->OnComponentBeginOverlap.AddDynamic(this, &ABaseItem::OnItemOverlap);
-	Collision->OnComponentEndOverlap.AddDynamic(this, &ABaseItem::OnItemEndOverlap);
-}
-
-void ABaseItem::OnItemOverlap(
-	UPrimitiveComponent* OverlappedComp,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult& SweepResult)
-{
-	if (OtherActor && OtherActor->ActorHasTag("Player"))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Item Picked Up!"));
-		ActivateItem(OtherActor);
-	}
-}
-
-void ABaseItem::OnItemEndOverlap(
-	UPrimitiveComponent* OverlappedComp,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex)
-{
-	// 필요 시 기능 추가 가능
-}
-
-void ABaseItem::ActivateItem(AActor* Activator)
-{
-	// 아이템을 활성화하는 로직 (상속받는 클래스에서 구현)
-	DestroyItem();
-}
-
-void ABaseItem::DestroyItem()
-{
-	Destroy();
+    // 🔥 이벤트 바인딩 수정
+    Collision->OnComponentBeginOverlap.AddDynamic(this, &ABaseItem::OnOverlapBegin);
+    Collision->OnComponentEndOverlap.AddDynamic(this, &ABaseItem::OnOverlapEnd);
 }
 
 void ABaseItem::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
+}
+
+void ABaseItem::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+}
+
+// 새로운 함수 추가
+void ABaseItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    OnItemOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
+void ABaseItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    OnItemEndOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex);
+}
+
+// 아이템과 충돌한 액터 정보 출력
+void ABaseItem::OnItemOverlap_Implementation(
+    UPrimitiveComponent* OverlappedComp,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex,
+    bool bFromSweep,
+    const FHitResult& SweepResult)
+{
+    if (OtherActor)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("🔵 아이템 충돌 감지: %s"), *OtherActor->GetName());
+
+        if (OtherActor->ActorHasTag(TEXT("Player")))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("🟢 플레이어가 아이템과 충돌! 아이템 활성화 실행"));
+            ActivateItem_Implementation(OtherActor);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("🟡 충돌한 객체는 플레이어가 아님"));
+        }
+    }
+}
+
+// 아이템과 충돌이 끝났을 때 메시지 출력
+void ABaseItem::OnItemEndOverlap_Implementation(
+    UPrimitiveComponent* OverlappedComp,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex)
+{
+    if (OtherActor)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("⚪ 아이템과 충돌이 끝남: %s"), *OtherActor->GetName());
+    }
+}
+
+// 아이템이 활성화될 때 출력
+void ABaseItem::ActivateItem_Implementation(AActor* Activator)
+{
+    UE_LOG(LogTemp, Warning, TEXT("💥 아이템 활성화됨!"));
+    DestroyItem();
+}
+
+// 아이템이 파괴될 때 출력
+void ABaseItem::DestroyItem()
+{
+    UE_LOG(LogTemp, Warning, TEXT("🗑️ 아이템이 제거됨!"));
+    Destroy();
 }

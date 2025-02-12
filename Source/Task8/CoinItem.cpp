@@ -2,17 +2,21 @@
 
 ACoinItem::ACoinItem()
 {
-	PointValue = 10; // 기본 점수 10점
-	ItemType = "Coin"; // 아이템 타입 설정
+	PointValue = 10;
+	ItemType = "Coin";
 }
 
-void ACoinItem::ActivateItem(AActor* Activator)
+void ACoinItem::ActivateItem_Implementation(AActor* Activator)
 {
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, 
-			FString::Printf(TEXT("Player gained %d points!"), PointValue));
-
-		DestroyItem(); // 아이템 사라지기
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Player gained %d points!"), PointValue));
+		}
+        
+		UE_LOG(LogTemp, Warning, TEXT("플레이어가 코인을 획득했습니다. 점수: %d"), PointValue);
+        
+		DestroyItem();
 	}
 }

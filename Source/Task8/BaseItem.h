@@ -18,40 +18,48 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
-	// 루트 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	USceneComponent* Scene;
 
-	// 충돌 감지용 SphereComponent
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	USphereComponent* Collision;
 
-	// 아이템의 메시
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	UStaticMeshComponent* StaticMesh;
 
-	// ✅ 아이템 타입 추가 (코인, 힐링, 무기 등)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName ItemType;
 
-	// 인터페이스 함수 구현
-	virtual void OnItemOverlap(
+	// 인터페이스 함수 (BlueprintNativeEvent이므로 override X)
+	UFUNCTION(BlueprintNativeEvent, Category = "Item")
+	void OnItemOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
-		const FHitResult& SweepResult) override;
+		const FHitResult& SweepResult);
 
-	virtual void OnItemEndOverlap(
+	UFUNCTION(BlueprintNativeEvent, Category = "Item")
+	void OnItemEndOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex) override;
+		int32 OtherBodyIndex);
 
-	virtual void ActivateItem(AActor* Activator) override;
+	UFUNCTION(BlueprintNativeEvent, Category = "Item")
+	void ActivateItem(AActor* Activator);
 
-	// 아이템 제거 함수
 	void DestroyItem();
+
+	// 새로운 함수 선언 추가
+	UFUNCTION()
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

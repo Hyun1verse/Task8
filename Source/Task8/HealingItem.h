@@ -15,7 +15,6 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Healing")
 	int32 HealAmount;
-
-	// 아이템 활성화 (획득 시 실행되는 함수)
-	virtual void ActivateItem(AActor* Activator) override;
+	
+	virtual void ActivateItem_Implementation(AActor* Activator);
 };
