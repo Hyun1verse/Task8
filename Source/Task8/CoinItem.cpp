@@ -1,4 +1,5 @@
 #include "CoinItem.h"
+#include "MyCharacter.h"
 
 ACoinItem::ACoinItem()
 {
@@ -8,15 +9,16 @@ ACoinItem::ACoinItem()
 
 void ACoinItem::ActivateItem_Implementation(AActor* Activator)
 {
-	if (Activator && Activator->ActorHasTag("Player"))
+	if (AMyCharacter* PlayerCharacter = Cast<AMyCharacter>(Activator))
 	{
+		PlayerCharacter->AddScore(PointValue);
+		
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Player gained %d points!"), PointValue));
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, 
+				FString::Printf(TEXT("점수 획득: %d점!"), PointValue));
 		}
-        
-		UE_LOG(LogTemp, Warning, TEXT("플레이어가 코인을 획득했습니다. 점수: %d"), PointValue);
-        
+		
 		DestroyItem();
 	}
 }
