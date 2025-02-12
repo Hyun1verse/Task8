@@ -39,52 +39,31 @@ void ASpawnVolume::Tick(float DeltaTime)
 
 void ASpawnVolume::StartWave()
 {
-    CurrentWave++;
-    
-    if (CurrentWave <= ItemsPerWave.Num())
+    if (CurrentWave < ItemsPerWave.Num())
     {
-        FString WaveMessage = FString::Printf(TEXT("Wave %d 시작!"), CurrentWave);
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, WaveMessage);
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *WaveMessage);
-
-        // 현재 웨이브에 해당하는 수만큼 아이템을 한번에 스폰
-        for (int32 i = 0; i < ItemsPerWave[CurrentWave - 1]; i++)
+        // 현재 웨이브에 해당하는 수만큼 아이템을 스폰
+        for (int32 i = 0; i < ItemsPerWave[CurrentWave]; i++)
         {
             SpawnItem();
         }
-        
-        // 웨이브 종료 타이머 설정
-        GetWorldTimerManager().SetTimer(WaveTimerHandle, this, &ASpawnVolume::EndWave, WaveDuration, false);
-    }
-    else
-    {
-        // 모든 웨이브 완료
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("모든 웨이브 완료!"));
-        UE_LOG(LogTemp, Warning, TEXT("모든 웨이브 완료!"));
     }
 }
 
 void ASpawnVolume::EndWave()
 {
-    if (CurrentWave < ItemsPerWave.Num())
+    if (CurrentWave < ItemsPerWave.Num() - 1)
     {
-        // GameMode에 웨이브 종료 알림
+        CurrentWave++;
+        
+        // 다음 웨이브 시작을 GameMode에 알림
         if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
         {
-            GameMode->EndWave();
-            
-            // 다음 웨이브 시작
             FTimerHandle NextWaveTimer;
             GetWorldTimerManager().SetTimer(NextWaveTimer, [GameMode]()
             {
                 GameMode->StartNewWave();
             }, TimeBetweenWaves, false);
         }
-        
-        FString Message = FString::Printf(TEXT("Wave %d 종료! %d초 후 다음 웨이브 시작"), 
-            CurrentWave, FMath::RoundToInt(TimeBetweenWaves));
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Orange, Message);
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
     }
 }
 

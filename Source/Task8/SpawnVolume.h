@@ -16,6 +16,7 @@ public:
 	ASpawnVolume();
 
 	void StartWave();
+	void EndWave();
 
 protected:
 	virtual void BeginPlay() override;
@@ -23,30 +24,25 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, Category = "Spawning")
-	TArray<TSubclassOf<class ABaseItem>> ItemsToSpawn;
-
-	UPROPERTY(EditAnywhere, Category = "Wave")
-	int32 CurrentWave;
-
-	UPROPERTY(EditAnywhere, Category = "Wave")
-	float WaveDuration;
-
-	UPROPERTY(EditAnywhere, Category = "Wave")
-	float TimeBetweenWaves;
-
-	UPROPERTY(EditAnywhere, Category = "Wave")
-	TArray<int32> ItemsPerWave;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* SpawnArea;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Wave")
+	TArray<int32> ItemsPerWave;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wave")
+	float TimeBetweenWaves = 5.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
+	TArray<TSubclassOf<class ABaseItem>> ItemsToSpawn;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wave")
+	float WaveDuration = 30.0f;
+
 private:
-	FTimerHandle WaveTimerHandle;
-	FTimerHandle SpawnTimerHandle;
-	float CurrentWaveTime;
-	
-	void EndWave();
 	void SpawnItem();
 	FVector GetRandomPointInVolume();
+	
+	int32 CurrentWave = 0;
+	FTimerHandle SpawnTimerHandle;
 };

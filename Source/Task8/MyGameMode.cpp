@@ -10,7 +10,8 @@ AMyGameMode::AMyGameMode()
 {
     PreWaveDelay = 1.0f;  // 1초 대기
     WaveDuration = 30.0f;  // 30초
-    CurrentWave = 0;  // 웨이브 0부터 시작
+    CurrentWave = 0;
+    RemainingTime = WaveDuration;  // 추가: 초기화
 }
 
 void AMyGameMode::BeginPlay()
@@ -30,12 +31,17 @@ void AMyGameMode::BeginPlay()
         if (HUDWidget)
         {
             HUDWidget->AddToViewport();
+
+            StartNewWave();
         }
     }
 }
 
 void AMyGameMode::StartNewWave()
 {
+    CurrentWave++;
+    RemainingTime = WaveDuration;
+    
     // 플레이어를 시작 위치로 이동
     ResetPlayerPosition();
     
@@ -59,8 +65,8 @@ void AMyGameMode::StartNewWave()
         WaveTimerHandle,
         this,
         &AMyGameMode::UpdateWaveTimer,
-        1.0f,  // 1초마다 업데이트
-        true   // 반복
+        1.0f,
+        true
     );
 }
 
@@ -84,8 +90,21 @@ void AMyGameMode::StartWaveAfterDelay()
 
 void AMyGameMode::EndWave()
 {
-    // 웨이브 종료 시 처리
-    // 다음 웨이브 시작 전에 StartNewWave가 호출됨
+    if (CurrentWave < 3)
+    {
+        // 다음 웨이브 시작
+        StartNewWave();  // ResetPlayerPosition은 StartNewWave 안에서 호출됨
+    }
+    else
+    {
+        // 게임 종료
+        if (ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0))
+        {
+            PlayerCharacter->DisableInput(nullptr);
+
+            // TODO: 게임 종료 UI 만들기
+        }
+    }
 }
 
 void AMyGameMode::ResetPlayerPosition()
@@ -109,8 +128,6 @@ void AMyGameMode::EnablePlayerMovement(bool bEnable)
 
 void AMyGameMode::UpdateWaveTimer()
 {
-    static float RemainingTime = WaveDuration;
-    
     if (RemainingTime > 0)
     {
         UpdateTimer(RemainingTime);
@@ -118,8 +135,18 @@ void AMyGameMode::UpdateWaveTimer()
     }
     else
     {
+        UpdateTimer(0.0f);
         GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
-        RemainingTime = WaveDuration;  // 다음 웨이브를 위해 리셋
+        
+        // 1초 후에 EndWave 호출
+        FTimerHandle EndWaveTimerHandle;
+        GetWorld()->GetTimerManager().SetTimer(
+            EndWaveTimerHandle,
+            this,
+            &AMyGameMode::EndWave,
+            1.0f,
+            false
+        );
     }
 }
 
@@ -148,11 +175,10 @@ void AMyGameMode::UpdateWaveNumber(int32 WaveNum)
     }
 }
 
-void AMyGameMode::UpdateTimer(float RemainingTime)
+void AMyGameMode::UpdateTimer(float InRemainingTime)
 {
     if (HUDWidget)
     {
-        HUDWidget->UpdateTimer(RemainingTime);
+        HUDWidget->UpdateTimer(InRemainingTime);
     }
 }
-
