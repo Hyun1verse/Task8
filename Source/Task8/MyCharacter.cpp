@@ -72,6 +72,9 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
         // Jumping
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+        // 일시정지 입력 추가
+        EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Triggered, this, &AMyCharacter::PauseGame);
     }
 }
 
@@ -154,4 +157,12 @@ void AMyCharacter::AddHealth(float HealAmount)
 float AMyCharacter::GetHealthPercentage() const
 {
     return CurrentHealth / MaxHealth;
+}
+
+void AMyCharacter::PauseGame()
+{
+    if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GameMode->PauseGame();
+    }
 } 

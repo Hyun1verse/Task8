@@ -32,6 +32,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UInputAction* JumpAction;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+    UInputAction* PauseAction;
+
     // 카메라 컴포넌트
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
     class USpringArmComponent* CameraBoom;
@@ -69,4 +72,7 @@ public:
 
     UFUNCTION(BlueprintPure, Category = "Gameplay")
     float GetHealthPercentage() const;
+
+    // 일시정지 함수 추가
+    void PauseGame();
 }; 

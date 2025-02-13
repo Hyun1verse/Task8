@@ -26,6 +26,16 @@ public:
 	void UpdateWaveNumber(int32 WaveNum);
 	void UpdateTimer(float InRemainingTime);
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> GameOverWidgetClass;
+
+	void GameOver();
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> PauseMenuWidgetClass;
+
+	void PauseGame();
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -4,7 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "SpawnVolume.h"
 #include "Blueprint/UserWidget.h"
-#include "WBP_HUD.h"  // UI 위젯 블루프린트를 위한 헤더
+#include "WBP_HUD.h"
 
 AMyGameMode::AMyGameMode()
 {
@@ -180,5 +180,45 @@ void AMyGameMode::UpdateTimer(float InRemainingTime)
     if (HUDWidget)
     {
         HUDWidget->UpdateTimer(InRemainingTime);
+    }
+}
+
+void AMyGameMode::GameOver()
+{
+    // 플레이어 입력 비활성화
+    if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+    {
+        PC->DisableInput(PC);
+    }
+
+    // 게임오버 UI 표시
+    if (GameOverWidgetClass)
+    {
+        if (UUserWidget* GameOverWidget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidgetClass))
+        {
+            GameOverWidget->AddToViewport();
+        }
+    }
+}
+
+void AMyGameMode::PauseGame()
+{
+    // 게임 일시정지
+    if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+    {
+        PC->SetPause(true);
+        
+        // 마우스 커서 표시
+        PC->SetShowMouseCursor(true);
+        PC->SetInputMode(FInputModeUIOnly());
+
+        // 일시정지 메뉴 표시
+        if (PauseMenuWidgetClass)
+        {
+            if (UUserWidget* PauseWidget = CreateWidget<UUserWidget>(GetWorld(), PauseMenuWidgetClass))
+            {
+                PauseWidget->AddToViewport();
+            }
+        }
     }
 }
