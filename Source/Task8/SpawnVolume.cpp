@@ -4,6 +4,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
 #include "MyGameMode.h"
+#include "MyGameState.h"
 
 ASpawnVolume::ASpawnVolume()
 {
@@ -41,11 +42,15 @@ void ASpawnVolume::StartWave()
 {
     if (CurrentWave < ItemsPerWave.Num())
     {
-        // 현재 웨이브에 해당하는 수만큼 아이템을 스폰
         for (int32 i = 0; i < ItemsPerWave[CurrentWave]; i++)
         {
             SpawnItem();
         }
+    }
+
+    if (AMyGameState* GameState = GetWorld()->GetGameState<AMyGameState>())
+    {
+        GameState->SetCurrentWave(CurrentWave);
     }
 }
 
@@ -55,7 +60,12 @@ void ASpawnVolume::EndWave()
     {
         CurrentWave++;
         
-        // 다음 웨이브 시작을 GameMode에 알림
+        // GameState 업데이트
+        if (AMyGameState* GameState = GetWorld()->GetGameState<AMyGameState>())
+        {
+            GameState->SetCurrentWave(CurrentWave);
+        }
+        
         if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
         {
             FTimerHandle NextWaveTimer;
@@ -63,6 +73,13 @@ void ASpawnVolume::EndWave()
             {
                 GameMode->StartNewWave();
             }, TimeBetweenWaves, false);
+        }
+    }
+    else  // 마지막 웨이브 종료 시 게임 오버 호출
+    {
+        if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+        {
+            GameMode->GameOver();
         }
     }
 }
@@ -86,4 +103,3 @@ FVector ASpawnVolume::GetRandomPointInVolume()
     
     return UKismetMathLibrary::RandomPointInBoundingBox(SpawnOrigin, SpawnExtent);
 }
-

@@ -104,50 +104,50 @@ void AMyCharacter::Look(const FInputActionValue& Value)
     AddControllerPitchInput(LookAxisVector.Y);
 }
 
-float AMyCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, 
-    AController* EventInstigator, AActor* DamageCauser)
+float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+    float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
     
-    if (CurrentHealth <= 0.0f)
-    {
-        return 0.0f;
-    }
-
-    CurrentHealth -= DamageToApply;
-    UE_LOG(LogTemp, Warning, TEXT("체력 감소! 현재 체력: %f"), CurrentHealth);
-
-    // 체력이 0 이하로 떨어졌을 때
-    if (CurrentHealth <= 0.0f)
-    {
-        CurrentHealth = 0.0f;
-        // 게임 오버 처리는 나중에 구현
-    }
-
+    CurrentHealth -= ActualDamage;
+    
+    // GameMode에 체력 업데이트 알림
     if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
     {
         GameMode->UpdateHealthBar(GetHealthPercentage());
+        
+        // 체력이 0 이하면 게임 오버
+        if (CurrentHealth <= 0)
+        {
+            GameMode->GameOver();
+        }
     }
-
-    return DamageToApply;
+    
+    return ActualDamage;
 }
 
 void AMyCharacter::AddScore(int32 Points)
 {
-    Score += Points;
-    
-    if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
+    if (AMyGameState* GameState = GetWorld()->GetGameState<AMyGameState>())
     {
-        GameMode->UpdateScore(Score);
+        GameState->AddScore(Points);  // GameState를 통해 점수 업데이트
     }
 }
 
 void AMyCharacter::AddHealth(float HealAmount)
 {
-    CurrentHealth = FMath::Min(CurrentHealth + HealAmount, MaxHealth);
-    UE_LOG(LogTemp, Warning, TEXT("체력 회복! 현재 체력: %f"), CurrentHealth);
+    // 현재 체력이 최대 체력보다 작을 때만 메시지 표시
+    bool bCanHeal = CurrentHealth < MaxHealth;
     
-    // UI 업데이트 추가
+    float OldHealth = CurrentHealth;
+    CurrentHealth = FMath::Min(CurrentHealth + HealAmount, MaxHealth);
+    
+    if (GEngine && bCanHeal)  // 체력이 최대가 아닐 때만 메시지 표시
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, 
+            FString::Printf(TEXT("체력 회복: %.1f"), HealAmount));
+    }
+    
+    // UI 업데이트
     if (AMyGameMode* GameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode()))
     {
         GameMode->UpdateHealthBar(GetHealthPercentage());

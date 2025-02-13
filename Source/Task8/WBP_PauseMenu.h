@@ -12,8 +12,5 @@ class TASK8_API UWBP_PauseMenu : public UWBP_BaseMenu
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Menu")
-    void RestartGame();
-
-    UFUNCTION(BlueprintCallable, Category = "Menu")
     void ResumeGame();
 }; 

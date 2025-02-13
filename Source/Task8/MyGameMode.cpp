@@ -5,6 +5,8 @@
 #include "SpawnVolume.h"
 #include "Blueprint/UserWidget.h"
 #include "WBP_HUD.h"
+#include "MyGameState.h"
+#include "WBP_GameOver.h"
 
 AMyGameMode::AMyGameMode()
 {
@@ -40,13 +42,27 @@ void AMyGameMode::BeginPlay()
 void AMyGameMode::StartNewWave()
 {
     CurrentWave++;
-    RemainingTime = WaveDuration;
+    
+    // 웨이브 시작 메시지 추가
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, 
+            FString::Printf(TEXT("Wave %d Start!"), CurrentWave));
+    }
+    
+    if (AMyGameState* MyGameState = GetWorld()->GetGameState<AMyGameState>())
+    {
+        RemainingTime = MyGameState->WaveDuration;
+        MyGameState->SetCurrentWave(CurrentWave);
+    }
     
     // 플레이어를 시작 위치로 이동
     ResetPlayerPosition();
     
     // 플레이어 움직임 비활성화
     EnablePlayerMovement(false);
+
+
     
     // 1초 후에 웨이브 시작
     GetWorld()->GetTimerManager().SetTimer(
@@ -59,6 +75,7 @@ void AMyGameMode::StartNewWave()
 
     // UI 업데이트
     UpdateWaveNumber(CurrentWave);
+    UpdateTimer(RemainingTime);
     
     // 웨이브 타이머 시작
     GetWorld()->GetTimerManager().SetTimer(
@@ -90,20 +107,13 @@ void AMyGameMode::StartWaveAfterDelay()
 
 void AMyGameMode::EndWave()
 {
-    if (CurrentWave < 3)
+    if (CurrentWave < 3)  // 3웨이브까지
     {
-        // 다음 웨이브 시작
-        StartNewWave();  // ResetPlayerPosition은 StartNewWave 안에서 호출됨
+        StartNewWave();
     }
     else
     {
-        // 게임 종료
-        if (ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0))
-        {
-            PlayerCharacter->DisableInput(nullptr);
-
-            // TODO: 게임 종료 UI 만들기
-        }
+        GameOver();  // 게임 오버 호출
     }
 }
 
@@ -130,23 +140,18 @@ void AMyGameMode::UpdateWaveTimer()
 {
     if (RemainingTime > 0)
     {
-        UpdateTimer(RemainingTime);
+        if (AMyGameState* MyGameState = GetWorld()->GetGameState<AMyGameState>())
+        {
+            MyGameState->SetRemainingTime(RemainingTime);
+            UpdateTimer(RemainingTime);  // UI 업데이트
+            UpdateWaveNumber(CurrentWave);  // 웨이브 번호 UI 업데이트 추가
+        }
         RemainingTime -= 1.0f;
     }
     else
     {
-        UpdateTimer(0.0f);
         GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
-        
-        // 1초 후에 EndWave 호출
-        FTimerHandle EndWaveTimerHandle;
-        GetWorld()->GetTimerManager().SetTimer(
-            EndWaveTimerHandle,
-            this,
-            &AMyGameMode::EndWave,
-            1.0f,
-            false
-        );
+        EndWave();
     }
 }
 
@@ -185,18 +190,30 @@ void AMyGameMode::UpdateTimer(float InRemainingTime)
 
 void AMyGameMode::GameOver()
 {
+    // 타이머 정지 추가
+    GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
+
     // 플레이어 입력 비활성화
     if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
     {
         PC->DisableInput(PC);
+        PC->SetShowMouseCursor(true);
+        PC->SetInputMode(FInputModeUIOnly());
     }
 
     // 게임오버 UI 표시
     if (GameOverWidgetClass)
     {
-        if (UUserWidget* GameOverWidget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidgetClass))
+        if (UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidgetClass))
         {
-            GameOverWidget->AddToViewport();
+            if (UWBP_GameOver* GameOverWidget = Cast<UWBP_GameOver>(Widget))
+            {
+                if (AMyGameState* MyGameState = GetWorld()->GetGameState<AMyGameState>())
+                {
+                    GameOverWidget->DisplayFinalScore(MyGameState->GetScore());
+                }
+                GameOverWidget->AddToViewport();
+            }
         }
     }
 }

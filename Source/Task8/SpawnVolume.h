@@ -36,13 +36,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
 	TArray<TSubclassOf<class ABaseItem>> ItemsToSpawn;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float WaveDuration = 30.0f;
-
 private:
 	void SpawnItem();
 	FVector GetRandomPointInVolume();
 	
 	int32 CurrentWave = 0;
+	float WaveDuration = 30.0f;
 	FTimerHandle SpawnTimerHandle;
 };

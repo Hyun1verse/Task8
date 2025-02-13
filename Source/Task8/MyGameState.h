@@ -13,6 +13,9 @@ public:
 	AMyGameState();
 
 	// 웨이브 관련
+	UPROPERTY(Replicated)
+	float WaveDuration = 30.0f;
+
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWave)
 	int32 CurrentWave;
 

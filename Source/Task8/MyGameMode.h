@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "MyGameState.h"
 #include "MyGameMode.generated.h"
 
 UCLASS()
@@ -34,6 +35,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UUserWidget> PauseMenuWidgetClass;
 
+	UFUNCTION(BlueprintCallable, Category = "Game")
 	void PauseGame();
 
 protected:

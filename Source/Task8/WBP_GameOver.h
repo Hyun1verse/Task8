@@ -11,6 +11,7 @@ class TASK8_API UWBP_GameOver : public UWBP_BaseMenu
     GENERATED_BODY()
 
 public:
-    UFUNCTION(BlueprintCallable, Category = "Menu")
-    void RestartGame();
+    // 최종 점수 표시 함수
+    UFUNCTION(BlueprintImplementableEvent, Category = "Menu")
+    void DisplayFinalScore(int32 Score);
 }; 
