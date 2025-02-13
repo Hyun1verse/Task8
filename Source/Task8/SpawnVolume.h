@@ -28,13 +28,13 @@ public:
 	class UBoxComponent* SpawnArea;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	TArray<int32> ItemsPerWave;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wave")
 	float TimeBetweenWaves = 5.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
 	TArray<TSubclassOf<class ABaseItem>> ItemsToSpawn;
+
+	UFUNCTION()
+	void SetNumItemsToSpawn(int32 NewNum) { NumItemsToSpawn = NewNum; }
 
 private:
 	void SpawnItem();
@@ -43,4 +43,5 @@ private:
 	int32 CurrentWave = 0;
 	float WaveDuration = 30.0f;
 	FTimerHandle SpawnTimerHandle;
+	int32 NumItemsToSpawn = 3;
 };

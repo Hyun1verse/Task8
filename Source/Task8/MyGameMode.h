@@ -5,6 +5,18 @@
 #include "MyGameState.h"
 #include "MyGameMode.generated.h"
 
+USTRUCT(BlueprintType)
+struct FWaveConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WaveDuration = 30.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 NumItemsToSpawn = 3;
+};
+
 UCLASS()
 class TASK8_API AMyGameMode : public AGameModeBase
 {
@@ -51,7 +63,7 @@ protected:
 	float PreWaveDelay = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wave")
-	float WaveDuration = 30.0f;
+	TArray<FWaveConfig> WaveConfigs;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wave")
 	int32 CurrentWave = 1;

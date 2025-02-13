@@ -18,10 +18,8 @@ ASpawnVolume::ASpawnVolume()
     WaveDuration = 30.0f;
     TimeBetweenWaves = 5.0f;
     
-    // 각 웨이브별 스폰할 아이템 개수 설정
-    ItemsPerWave.Add(3);  // Wave 1
-    ItemsPerWave.Add(5);  // Wave 2
-    ItemsPerWave.Add(7);  // Wave 3
+    // 기본 스폰 개수 설정
+    NumItemsToSpawn = 3;
 }
 
 void ASpawnVolume::BeginPlay()
@@ -40,12 +38,10 @@ void ASpawnVolume::Tick(float DeltaTime)
 
 void ASpawnVolume::StartWave()
 {
-    if (CurrentWave < ItemsPerWave.Num())
+    // 설정된 개수만큼 아이템 스폰
+    for (int32 i = 0; i < NumItemsToSpawn; i++)
     {
-        for (int32 i = 0; i < ItemsPerWave[CurrentWave]; i++)
-        {
-            SpawnItem();
-        }
+        SpawnItem();
     }
 
     if (AMyGameState* GameState = GetWorld()->GetGameState<AMyGameState>())
@@ -56,7 +52,7 @@ void ASpawnVolume::StartWave()
 
 void ASpawnVolume::EndWave()
 {
-    if (CurrentWave < ItemsPerWave.Num() - 1)
+    if (CurrentWave < 3)  // 3웨이브까지
     {
         CurrentWave++;
         

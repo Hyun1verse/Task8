@@ -11,9 +11,15 @@
 AMyGameMode::AMyGameMode()
 {
     PreWaveDelay = 1.0f;  // 1초 대기
-    WaveDuration = 30.0f;  // 30초
     CurrentWave = 0;
-    RemainingTime = WaveDuration;  // 추가: 초기화
+
+    // 기본 웨이브 설정 추가
+    FWaveConfig DefaultConfig;
+    DefaultConfig.WaveDuration = 30.0f;
+    DefaultConfig.NumItemsToSpawn = 3;
+    WaveConfigs.Add(DefaultConfig);
+
+    RemainingTime = DefaultConfig.WaveDuration;
 }
 
 void AMyGameMode::BeginPlay()
@@ -43,7 +49,19 @@ void AMyGameMode::StartNewWave()
 {
     CurrentWave++;
     
-    // 웨이브 시작 메시지 추가
+    // 웨이브 설정 가져오기
+    FWaveConfig CurrentConfig;
+    if (WaveConfigs.IsValidIndex(CurrentWave - 1))
+    {
+        CurrentConfig = WaveConfigs[CurrentWave - 1];
+    }
+    else
+    {
+        // 기본값 사용
+        CurrentConfig.WaveDuration = 30.0f;
+        CurrentConfig.NumItemsToSpawn = 3;
+    }
+    
     if (GEngine)
     {
         GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, 
@@ -52,8 +70,20 @@ void AMyGameMode::StartNewWave()
     
     if (AMyGameState* MyGameState = GetWorld()->GetGameState<AMyGameState>())
     {
-        RemainingTime = MyGameState->WaveDuration;
+        RemainingTime = CurrentConfig.WaveDuration;
+        MyGameState->WaveDuration = CurrentConfig.WaveDuration;  // GameState에도 설정
         MyGameState->SetCurrentWave(CurrentWave);
+    }
+
+    // SpawnVolume에 아이템 스폰 개수 전달
+    TArray<AActor*> SpawnVolumes;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), SpawnVolumes);
+    for (AActor* Actor : SpawnVolumes)
+    {
+        if (ASpawnVolume* SpawnVolume = Cast<ASpawnVolume>(Actor))
+        {
+            SpawnVolume->SetNumItemsToSpawn(CurrentConfig.NumItemsToSpawn);
+        }
     }
     
     // 플레이어를 시작 위치로 이동
@@ -62,8 +92,6 @@ void AMyGameMode::StartNewWave()
     // 플레이어 움직임 비활성화
     EnablePlayerMovement(false);
 
-
-    
     // 1초 후에 웨이브 시작
     GetWorld()->GetTimerManager().SetTimer(
         PreWaveTimerHandle,
